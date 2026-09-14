@@ -4,6 +4,11 @@
 
 ## Fixed:
 
+- Fixed Hyprsunset staying enabled after reboot and failing to toggle off
+  - Switched toggle handling to use `hyprctl hyprsunset` IPC for seamless, flicker-free adjustments
+  - Added robust termination helper with `SIGKILL` fallback to prevent stuck processes
+  - Fixed Waybar status detection to respect the state file rather than forcing 'on' whenever the daemon is running
+  - Added cleanup on startup to ensure lingering processes from previous sessions are reset when disabled
 - `ALT + SHIFT` not working to change keyboard layout
   - Updated modifier normalization and keybinds to use canonical modifiers and keys
 - Media Key `stop/pause/play` not working

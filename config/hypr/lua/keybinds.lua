@@ -417,37 +417,31 @@ bind(
 )
 bind(
   "",
-  "xf86AudioPlayPause",
+  "XF86AudioPlay",
   exec_cmd("$HOME/.config/hypr/scripts/MediaCtrl.sh --pause"),
   { description = "play/pause", locked = true }
 )
 bind(
   "",
-  "xf86AudioPause",
+  "XF86AudioPause",
   exec_cmd("$HOME/.config/hypr/scripts/MediaCtrl.sh --pause"),
   { description = "pause", locked = true }
 )
 bind(
   "",
-  "xf86AudioPlay",
-  exec_cmd("$HOME/.config/hypr/scripts/MediaCtrl.sh --pause"),
-  { description = "play", locked = true }
-)
-bind(
-  "",
-  "xf86AudioNext",
+  "XF86AudioNext",
   exec_cmd("$HOME/.config/hypr/scripts/MediaCtrl.sh --nxt"),
   { description = "next track", locked = true }
 )
 bind(
   "",
-  "xf86AudioPrev",
+  "XF86AudioPrev",
   exec_cmd("$HOME/.config/hypr/scripts/MediaCtrl.sh --prv"),
   { description = "previous track", locked = true }
 )
 bind(
   "",
-  "xf86audiostop",
+  "XF86AudioStop",
   exec_cmd("$HOME/.config/hypr/scripts/MediaCtrl.sh --stop"),
   { description = "stop", locked = true }
 )

@@ -179,7 +179,7 @@ Source: `config/hypr/lua/keybinds.lua`
 - `XF86AudioMicMute` — Toggle microphone mute (`Volume.sh --toggle-mic`)
 
 ### Playback controls
-- `XF86AudioPlayPause` / `XF86AudioPause` / `XF86AudioPlay` — Play / pause (`MediaCtrl.sh --pause`)
+- `XF86AudioPlay` / `XF86AudioPause` — Play / pause (`MediaCtrl.sh --pause`)
 - `XF86AudioNext` — Next track (`MediaCtrl.sh --nxt`)
 - `XF86AudioPrev` — Previous track (`MediaCtrl.sh --prv`)
 - `XF86AudioStop` — Stop playback (`MediaCtrl.sh --stop`)

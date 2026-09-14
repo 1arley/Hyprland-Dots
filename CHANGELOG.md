@@ -4,12 +4,14 @@
 
 ## Fixed:
 
+- Media Key `stop/pause/play` not working
+  - Updated `system_keybinds.lua` to fix this
 - Fixed black wallpaper on resume or lid open
 - Fixed `awww` to actualy randomize transistions
 - Huge delay and HL IPC stall when changing themes
   - Removed hyprlang code and replaced with LUA
-- Huge delay and HL IPC stall when changing themes 
-  - Removed hyprlang code and replaced with LUA 
+- Huge delay and HL IPC stall when changing themes
+  - Removed hyprlang code and replaced with LUA
   - Thank you Angel Spano @jasueh
 - Custom scripts weren't preserved on updates
 - WindowRules weren't being migrated
@@ -37,11 +39,11 @@
 
 ## Updated:
 
-- Express upgrade removed redundant questions 
-  - Text and Visual editors 
-  - Waybar 12/24hr setting 
-- Full upgrade removed redundnat questions 
-  - Restoring hyprlang based configs 
+- Express upgrade removed redundant questions
+  - Text and Visual editors
+  - Waybar 12/24hr setting
+- Full upgrade removed redundnat questions
+  - Restoring hyprlang based configs
 - Removed hyprlang code from `hypr/scripts`
 - Began removal of hyprlang based config files
 - Kitty has a remote exploit current when `enable_remote_acces = yes`

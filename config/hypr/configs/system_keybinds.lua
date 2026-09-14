@@ -544,14 +544,26 @@ bind(
   { description = "change oh-my-zsh theme" }
 )
 bind(
-  "ALT_L",
-  "SHIFT_L",
+  "ALT",
+  "Shift_L",
   exec_cmd("$HOME/.config/hypr/scripts/KeyboardLayout.sh switch"),
   { description = "switch keyboard layout globally", locked = true }
 )
 bind(
-  "SHIFT_L",
-  "ALT_L",
+  "ALT",
+  "Shift_R",
+  exec_cmd("$HOME/.config/hypr/scripts/KeyboardLayout.sh switch"),
+  { description = "switch keyboard layout globally", locked = true }
+)
+bind(
+  "SHIFT",
+  "Alt_L",
+  exec_cmd("$HOME/.config/hypr/scripts/Tak0-Per-Window-Switch.sh"),
+  { description = "switch keyboard layout per-window", locked = true }
+)
+bind(
+  "SHIFT",
+  "Alt_R",
   exec_cmd("$HOME/.config/hypr/scripts/Tak0-Per-Window-Switch.sh"),
   { description = "switch keyboard layout per-window", locked = true }
 )

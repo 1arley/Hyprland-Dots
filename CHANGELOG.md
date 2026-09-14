@@ -4,6 +4,8 @@
 
 ## Fixed:
 
+- `ALT + SHIFT` not working to change keyboard layout
+  - Updated modifier normalization and keybinds to use canonical modifiers and keys
 - Media Key `stop/pause/play` not working
   - Updated `system_keybinds.lua` to fix this
 - Fixed black wallpaper on resume or lid open

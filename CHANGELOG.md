@@ -1,5 +1,10 @@
 # Changelog — KoolDots
 
+## v2.3.26.5
+
+- Fixed:
+  - Keyboard layout switcher `ALT + SHIFT`
+
 ## v2.3.26.4
 
 - Fixed:

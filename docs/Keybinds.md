@@ -189,5 +189,5 @@ Source: `config/hypr/lua/keybinds.lua`
 - `XF86Rfkill` — Airplane mode toggle (`AirplaneMode.sh`)
 
 ## Keyboard Layout Switching
-- `Left ALT + Left SHIFT` (`ALT_L + SHIFT_L`) — Switch keyboard layout globally (`KeyboardLayout.sh switch`)
-- `Left SHIFT + Left ALT` (`SHIFT_L + ALT_L`) — Switch keyboard layout per-window (`Tak0-Per-Window-Switch.sh`)
+- `ALT + SHIFT` (`ALT + Shift_L / Shift_R`) — Switch keyboard layout globally (`KeyboardLayout.sh switch`)
+- `SHIFT + ALT` (`SHIFT + Alt_L / Alt_R`) — Switch keyboard layout per-window (`Tak0-Per-Window-Switch.sh`)

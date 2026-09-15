@@ -13,5 +13,5 @@
 { "label" : "s5", "action" : "true", "text" : " ", "keybind" : "6" }
 { "label" : "reboot", "action" : "systemctl reboot", "text" : "Reboot", "keybind" : "r" }
 { "label" : "s6", "action" : "true", "text" : " ", "keybind" : "7" }
-{ "label" : "logout", "action" : "hyprctl dispatch exit 0", "text" : "Logout", "keybind" : "e" }
+{ "label" : "logout", "action" : "$HOME/.config/hypr/scripts/Logout.sh", "text" : "Logout", "keybind" : "e" }
 { "label" : "s7", "action" : "true", "text" : " ", "keybind" : "8" }

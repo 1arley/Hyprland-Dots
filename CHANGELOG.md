@@ -56,6 +56,8 @@
 
 ## Updated:
 
+- Added check if `wallpaper-bank` already installed and current
+  - Thanks to JoshuaRVLS for the fix
 - Express upgrade removed redundant questions
   - Text and Visual editors
   - Waybar 12/24hr setting

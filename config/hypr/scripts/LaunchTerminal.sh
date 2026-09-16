@@ -14,6 +14,8 @@
 
 set -u
 
+export KITTY_CONFIG_DIRECTORY="${KITTY_CONFIG_DIRECTORY:-${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs}"
+
 notify_msg() {
   local urgency="${1:-normal}"
   local body="${2:-}"
@@ -82,6 +84,10 @@ build_terminal_command() {
   payload="$(trim "${2:-}")"
 
   if [[ -z "$payload" ]]; then
+    if [[ "$bin" == "kitty" && "$term_cmd" != *"--config"* && "$term_cmd" != *"-c "* ]]; then
+      printf '%s --config "%s"' "$term_cmd" "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs/kitty.conf"
+      return 0
+    fi
     printf '%s' "$term_cmd"
     return 0
   fi
@@ -91,7 +97,11 @@ build_terminal_command() {
 
   case "$bin" in
   kitty)
-    printf '%s -- sh -c %s' "$term_cmd" "$q_payload"
+    local kitty_cfg_arg=""
+    if [[ "$term_cmd" != *"--config"* && "$term_cmd" != *"-c "* ]]; then
+      kitty_cfg_arg="--config \"${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs/kitty.conf\" "
+    fi
+    printf '%s %s-- sh -c %s' "$term_cmd" "$kitty_cfg_arg" "$q_payload"
     ;;
   ghostty)
     printf '%s -e sh -c %s' "$term_cmd" "$q_payload"

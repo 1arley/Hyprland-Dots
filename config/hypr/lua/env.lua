@@ -26,6 +26,10 @@ hl.env("QT_SCALE_FACTOR", "1")
 hl.env("MOZ_ENABLE_WAYLAND", "1")
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
 
+-- Kitty terminal configuration directory
+local configHome = os.getenv("XDG_CONFIG_HOME") or ((os.getenv("HOME") or "") .. "/.config")
+hl.env("KITTY_CONFIG_DIRECTORY", configHome .. "/hypr/UserConfigs")
+
 -- Cursor theme defaults
 hl.env("HYPRCURSOR_THEME", "Bibata-Modern-Ice")
 hl.env("HYPRCURSOR_SIZE", "24")

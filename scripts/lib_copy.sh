@@ -11,7 +11,7 @@ copy_phase1() {
   local log="$1"
   local run_mode="${2:-${RUN_MODE:-}}"
   local base="${DOTFILES_DIR:-.}"
-  local dirs="fastfetch kitty swaync"
+  local dirs="fastfetch swaync"
   for DIR2 in $dirs; do
     local DIRPATH="${XDG_CONFIG_HOME:-$HOME/.config}/$DIR2"
     if [ -d "$DIRPATH" ]; then

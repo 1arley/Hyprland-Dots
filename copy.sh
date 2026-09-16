@@ -753,7 +753,9 @@ done
 echo "${OK} You have chosen $resolution resolution." 2>&1 | tee -a "$LOG"
 if [ "$resolution" == "< 1440p" ]; then
   # kitty font size
-  sed -i 's/font_size 16.0/font_size 14.0/' "$DOTFILES_DIR/config/kitty/kitty.conf"
+  if [ -f "$DOTFILES_DIR/config/hypr/UserConfigs/kitty.conf" ]; then
+    sed -i 's/font_size 16.0/font_size 14.0/' "$DOTFILES_DIR/config/hypr/UserConfigs/kitty.conf"
+  fi
 
   # hyprlock matters
   if [ -f "$DOTFILES_DIR/config/hypr/hyprlock-1080p.conf" ]; then

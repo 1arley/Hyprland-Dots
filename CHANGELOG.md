@@ -4,6 +4,7 @@
 
 ## Fixed:
 
+- Moved `kitty` config fully to `.config/hypr/UserConfigs`
 - Potential issue with `lockscreen.sh` not logging out
   - If hypridle dies status is updated but no lock is enabled
   - Updating weather info is impromved as well

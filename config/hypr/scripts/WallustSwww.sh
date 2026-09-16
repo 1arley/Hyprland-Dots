@@ -349,7 +349,7 @@ fi
 
   # Reload kitty colors when wallpaper-based theme is active.
   # Use SIGUSR1 directly to avoid extra latency from kitty remote-control calls.
-  kitty_wallust_theme="${XDG_CONFIG_HOME:-$HOME/.config}/kitty/kitty-themes/01-Wallust.conf"
+  kitty_wallust_theme="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs/kitty-themes/01-Wallust.conf"
   if [ -s "$kitty_wallust_theme" ]; then
     if pidof kitty >/dev/null 2>&1; then
       for pid in $(pidof kitty); do

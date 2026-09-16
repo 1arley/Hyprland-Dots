@@ -4,6 +4,7 @@
 
 ## Fixed:
 
+- Animations weren't actually changing
 - Terminal variable `$term` not properly quoted causing failed starts
 - Moved `kitty` config fully to `.config/hypr/UserConfigs`
 - Potential issue with `lockscreen.sh` not logging out

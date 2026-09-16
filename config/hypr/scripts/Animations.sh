@@ -36,11 +36,23 @@ fi
 chosen_file=$(echo "$animations_list" | rofi -i -dmenu -config "$rofi_theme" -mesg "$msg")
 
 # Check if a file was selected
-if [[ -n "$chosen_file" ]]; then
-    full_path="$animations_dir/$chosen_file.$animation_ext"
-    cp "$full_path" "$target_animation_file"
-    notify-send -u low -i "$iDIR/ja.png" "$chosen_file" "Hyprland Animation Loaded"
+if [[ -z "$chosen_file" ]]; then
+    exit 0
+fi
+
+full_path="$animations_dir/$chosen_file.$animation_ext"
+if [[ ! -f "$full_path" ]]; then
+    notify-send -u normal -i "$iDIR/error.png" "Error" "Animation preset not found: $chosen_file"
+    exit 1
+fi
+
+mkdir -p "$UserConfigs"
+cp "$full_path" "$target_animation_file"
+notify-send -u low -i "$iDIR/ja.png" "$chosen_file" "Hyprland Animation Loaded"
+
+if command -v hyprctl &>/dev/null; then
+    hyprctl reload >/dev/null 2>&1 || true
 fi
 
 sleep 1
-"$SCRIPTSDIR/RefreshNoWaybar.sh"
+"$SCRIPTSDIR/RefreshNoWaybar.sh" &

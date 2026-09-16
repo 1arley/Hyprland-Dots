@@ -14,7 +14,9 @@
 
 set -u
 
-export KITTY_CONFIG_DIRECTORY="${KITTY_CONFIG_DIRECTORY:-${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs}"
+if [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs/kitty.conf" ]]; then
+  export KITTY_CONFIG_DIRECTORY="${KITTY_CONFIG_DIRECTORY:-${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs}"
+fi
 
 notify_msg() {
   local urgency="${1:-normal}"
@@ -79,27 +81,28 @@ launch_command_string() {
 }
 
 build_terminal_command() {
-  local term_cmd payload bin q_payload
+  local term_cmd payload bin q_payload user_kitty_cfg
   term_cmd="$(trim "${1:-}")"
   payload="$(trim "${2:-}")"
+  bin="$(command_bin_from_string "$term_cmd" 2>/dev/null || true)"
+  user_kitty_cfg="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs/kitty.conf"
 
   if [[ -z "$payload" ]]; then
-    if [[ "$bin" == "kitty" && "$term_cmd" != *"--config"* && "$term_cmd" != *"-c "* ]]; then
-      printf '%s --config "%s"' "$term_cmd" "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs/kitty.conf"
+    if [[ "$bin" == "kitty" && "$term_cmd" != *"--config"* && "$term_cmd" != *"-c "* && -f "$user_kitty_cfg" ]]; then
+      printf '%s --config "%s"' "$term_cmd" "$user_kitty_cfg"
       return 0
     fi
     printf '%s' "$term_cmd"
     return 0
   fi
 
-  bin="$(command_bin_from_string "$term_cmd" 2>/dev/null || true)"
   q_payload="$(shell_quote "$payload")"
 
   case "$bin" in
   kitty)
     local kitty_cfg_arg=""
-    if [[ "$term_cmd" != *"--config"* && "$term_cmd" != *"-c "* ]]; then
-      kitty_cfg_arg="--config \"${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs/kitty.conf\" "
+    if [[ "$term_cmd" != *"--config"* && "$term_cmd" != *"-c "* && -f "$user_kitty_cfg" ]]; then
+      kitty_cfg_arg="--config \"$user_kitty_cfg\" "
     fi
     printf '%s %s-- sh -c %s' "$term_cmd" "$kitty_cfg_arg" "$q_payload"
     ;;
@@ -144,6 +147,10 @@ append_unique_candidate() {
 
 preferred_term="$(trim "${1:-${TERMINAL:-}}")"
 payload_cmd="$(trim "${2:-}")"
+
+if [[ "$preferred_term" == '$term' || "$preferred_term" == '${term}' || "$preferred_term" == '$TERMINAL' || "$preferred_term" == '${TERMINAL}' ]]; then
+  preferred_term="${term:-${TERMINAL:-kitty}}"
+fi
 
 declare -a CANDIDATES=()
 append_unique_candidate "$preferred_term"

@@ -87,13 +87,15 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-export KITTY_CONFIG_DIRECTORY="${KITTY_CONFIG_DIRECTORY:-${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs}"
 TERMINAL_CMD="$*"
 if [[ "$TERMINAL_CMD" == kitty* ]] && [[ "$TERMINAL_CMD" != *"--class"* ]] && [[ "$TERMINAL_CMD" != *"--name"* ]] && [[ "$TERMINAL_CMD" != *"--app-id"* ]]; then
   TERMINAL_CMD="$TERMINAL_CMD --class $DROPDOWN_KITTY_CLASS --app-id $DROPDOWN_KITTY_CLASS"
 fi
-if [[ "$TERMINAL_CMD" == kitty* ]] && [[ "$TERMINAL_CMD" != *"--config"* ]] && [[ "$TERMINAL_CMD" != *"-c "* ]]; then
-  TERMINAL_CMD="$TERMINAL_CMD --config ${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs/kitty.conf"
+if [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs/kitty.conf" ]]; then
+  export KITTY_CONFIG_DIRECTORY="${KITTY_CONFIG_DIRECTORY:-${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs}"
+  if [[ "$TERMINAL_CMD" == kitty* ]] && [[ "$TERMINAL_CMD" != *"--config"* ]] && [[ "$TERMINAL_CMD" != *"-c "* ]]; then
+    TERMINAL_CMD="$TERMINAL_CMD --config ${XDG_CONFIG_HOME:-$HOME/.config}/hypr/UserConfigs/kitty.conf"
+  fi
 fi
 
 get_epoch_ms() {

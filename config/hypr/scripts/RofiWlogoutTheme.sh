@@ -5,11 +5,28 @@
 #  Includes backup and restore for current wlogout configurations
 # ==============================================================================
 
-# Toggle: close rofi if already open
-if pidof rofi >/dev/null; then
-    pkill -x rofi
-    exit 0
-fi
+# Parse options for CLI / silent mode
+IS_SILENT=0
+CLI_THEME=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --silent|-s)
+            IS_SILENT=1
+            shift
+            ;;
+        --set|--theme|-t)
+            CLI_THEME="${2:-}"
+            shift 2
+            ;;
+        *)
+            if [[ -z "$CLI_THEME" && ! "$1" =~ ^-- ]]; then
+                CLI_THEME="$1"
+            fi
+            shift
+            ;;
+    esac
+done
 
 SCRIPTSDIR="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/scripts"
 WLOGOUT_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/wlogout"
@@ -121,12 +138,90 @@ backup_active_wlogout() {
     fi
 }
 
-# Track current preset
-CURRENT_PRESET="default"
-if [[ -f "${WLOGOUT_DIR}/.current_theme" ]]; then
-    CURRENT_PRESET=$(cat "${WLOGOUT_DIR}/.current_theme" 2>/dev/null || echo "default")
+# Function to apply a theme preset
+apply_theme() {
+    local theme="$1"
+    local silent="${2:-$IS_SILENT}"
+
+    if [[ -z "$theme" || ! -d "${THEMES_DIR}/${theme}" ]]; then
+        return 1
+    fi
+
+    # If switching away from an unsaved custom config, automatically create user_backup
+    if [[ ! -d "$BACKUP_DIR" && "$CURRENT_PRESET" != "default" && "$CURRENT_PRESET" != "$theme" ]]; then
+        backup_active_wlogout 1
+    fi
+
+    echo "$theme" > "${WLOGOUT_DIR}/.current_theme"
+
+    # Copy theme style
+    if [[ -f "${THEMES_DIR}/${theme}/style.css" ]]; then
+        cp -f "${THEMES_DIR}/${theme}/style.css" "${WLOGOUT_DIR}/style.css"
+    fi
+
+    # Copy theme layout if present
+    if [[ -f "${THEMES_DIR}/${theme}/layout" ]]; then
+        cp -f "${THEMES_DIR}/${theme}/layout" "${WLOGOUT_DIR}/layout"
+    fi
+
+    # Copy theme flags if present, or remove them so default responsive calculations apply
+    if [[ -f "${THEMES_DIR}/${theme}/.theme_flags" ]]; then
+        cp -f "${THEMES_DIR}/${theme}/.theme_flags" "${WLOGOUT_DIR}/.theme_flags"
+    else
+        rm -f "${WLOGOUT_DIR}/.theme_flags"
+    fi
+
+    # Replace active icons with theme-specific icons
+    mkdir -p "${WLOGOUT_DIR}/icons"
+    rm -rf "${WLOGOUT_DIR}/icons"/*
+    if [[ -d "${THEMES_DIR}/${theme}/icons" ]]; then
+        cp -rf "${THEMES_DIR}/${theme}/icons/"* "${WLOGOUT_DIR}/icons/"
+    fi
+
+    # Background handling
+    if [[ "$theme" == "default" ]]; then
+        # Default KoolDots wlogout uses dynamic Wallust color styling without a static wallpaper background
+        rm -f "${WLOGOUT_DIR}/bg.png" "${WLOGOUT_DIR}/sekiro_blurred.png"
+    else
+        # Read active blur radius
+        BLUR_RADIUS=20
+        if [[ -f "${WLOGOUT_DIR}/.blur_radius" ]]; then
+            SAVED_BLUR=$(cat "${WLOGOUT_DIR}/.blur_radius" 2>/dev/null || echo "")
+            if [[ "$SAVED_BLUR" =~ ^[0-9]+$ ]]; then
+                BLUR_RADIUS="$SAVED_BLUR"
+            fi
+        fi
+
+        if [[ -f "${THEMES_DIR}/${theme}/bg_raw.png" ]]; then
+            echo "${THEMES_DIR}/${theme}/bg_raw.png" > "${WLOGOUT_DIR}/.current_wall_raw"
+            render_theme_background "${THEMES_DIR}/${theme}/bg_raw.png" "${WLOGOUT_DIR}/bg.png" "$BLUR_RADIUS" "$theme" "${THEMES_DIR}/fuji/grid_overlay.png"
+        elif [[ -f "${THEMES_DIR}/${theme}/bg.png" ]]; then
+            cp -f "${THEMES_DIR}/${theme}/bg.png" "${WLOGOUT_DIR}/bg.png"
+        fi
+    fi
+
+    if [[ "$silent" -ne 1 ]] && command -v notify-send >/dev/null 2>&1; then
+        if [[ "$theme" == "default" ]]; then
+            notify-send -u normal -i "preferences-desktop-theme" "Wlogout Theme" "Restored: Default (KoolDots)"
+        elif [[ "$theme" == "user_backup" ]]; then
+            notify-send -u normal -i "document-revert" "Wlogout Theme" "Restored: User Backup Config"
+        else
+            notify-send -u normal -i "preferences-desktop-theme" "Wlogout Theme" "Switched to: $theme"
+        fi
+    fi
+}
+
+# If called via CLI with a preset name, apply directly and exit
+if [[ -n "$CLI_THEME" ]]; then
+    apply_theme "$CLI_THEME" "$IS_SILENT"
+    exit $?
 fi
-[[ -z "$CURRENT_PRESET" ]] && CURRENT_PRESET="default"
+
+# Toggle: close rofi if already open
+if pidof rofi >/dev/null; then
+    pkill -x rofi
+    exit 0
+fi
 
 declare -A PRESET_MAP=(
     ["💫  Default (KoolDots)"]="default"
@@ -221,67 +316,6 @@ fi
 
 SELECTED="${PRESET_MAP[$CLEAN_CHOICE]:-}"
 
-if [[ -n "$SELECTED" && -d "${THEMES_DIR}/${SELECTED}" ]]; then
-    # If switching away from an unsaved custom config, automatically create user_backup
-    if [[ ! -d "$BACKUP_DIR" && "$CURRENT_PRESET" != "default" && "$CURRENT_PRESET" != "$SELECTED" ]]; then
-        backup_active_wlogout 1
-    fi
-
-    echo "$SELECTED" > "${WLOGOUT_DIR}/.current_theme"
-
-    # Copy theme style
-    if [[ -f "${THEMES_DIR}/${SELECTED}/style.css" ]]; then
-        cp -f "${THEMES_DIR}/${SELECTED}/style.css" "${WLOGOUT_DIR}/style.css"
-    fi
-    
-    # Copy theme layout if present
-    if [[ -f "${THEMES_DIR}/${SELECTED}/layout" ]]; then
-        cp -f "${THEMES_DIR}/${SELECTED}/layout" "${WLOGOUT_DIR}/layout"
-    fi
-
-    # Copy theme flags if present, or remove them so default responsive calculations apply
-    if [[ -f "${THEMES_DIR}/${SELECTED}/.theme_flags" ]]; then
-        cp -f "${THEMES_DIR}/${SELECTED}/.theme_flags" "${WLOGOUT_DIR}/.theme_flags"
-    else
-        rm -f "${WLOGOUT_DIR}/.theme_flags"
-    fi
-
-    # Replace active icons with theme-specific icons
-    mkdir -p "${WLOGOUT_DIR}/icons"
-    rm -rf "${WLOGOUT_DIR}/icons"/*
-    if [[ -d "${THEMES_DIR}/${SELECTED}/icons" ]]; then
-        cp -rf "${THEMES_DIR}/${SELECTED}/icons/"* "${WLOGOUT_DIR}/icons/"
-    fi
-    
-    # Background handling
-    if [[ "$SELECTED" == "default" ]]; then
-        # Default KoolDots wlogout uses dynamic Wallust color styling without a static wallpaper background
-        rm -f "${WLOGOUT_DIR}/bg.png" "${WLOGOUT_DIR}/sekiro_blurred.png"
-    else
-        # Read active blur radius
-        BLUR_RADIUS=20
-        if [[ -f "${WLOGOUT_DIR}/.blur_radius" ]]; then
-            SAVED_BLUR=$(cat "${WLOGOUT_DIR}/.blur_radius" 2>/dev/null || echo "")
-            if [[ "$SAVED_BLUR" =~ ^[0-9]+$ ]]; then
-                BLUR_RADIUS="$SAVED_BLUR"
-            fi
-        fi
-
-        if [[ -f "${THEMES_DIR}/${SELECTED}/bg_raw.png" ]]; then
-            echo "${THEMES_DIR}/${SELECTED}/bg_raw.png" > "${WLOGOUT_DIR}/.current_wall_raw"
-            render_theme_background "${THEMES_DIR}/${SELECTED}/bg_raw.png" "${WLOGOUT_DIR}/bg.png" "$BLUR_RADIUS" "$SELECTED" "${THEMES_DIR}/fuji/grid_overlay.png"
-        elif [[ -f "${THEMES_DIR}/${SELECTED}/bg.png" ]]; then
-            cp -f "${THEMES_DIR}/${SELECTED}/bg.png" "${WLOGOUT_DIR}/bg.png"
-        fi
-    fi
-
-    if command -v notify-send >/dev/null 2>&1; then
-        if [[ "$SELECTED" == "default" ]]; then
-            notify-send -u normal -i "preferences-desktop-theme" "Wlogout Theme" "Restored: Default (KoolDots)"
-        elif [[ "$SELECTED" == "user_backup" ]]; then
-            notify-send -u normal -i "document-revert" "Wlogout Theme" "Restored: User Backup Config"
-        else
-            notify-send -u normal -i "preferences-desktop-theme" "Wlogout Theme" "Switched to: $SELECTED"
-        fi
-    fi
+if [[ -n "$SELECTED" ]]; then
+    apply_theme "$SELECTED" "$IS_SILENT"
 fi

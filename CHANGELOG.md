@@ -5,6 +5,7 @@
 ## Fixed:
 
 - New wlogout themes weren't logging out correctly
+- Fixed wlogout theme sending notifications at login
 - Fixed Hyprsunset staying enabled after reboot and failing to toggle off
   - Switched toggle handling to use `hyprctl hyprsunset` IPC for seamless, flicker-free adjustments
   - Added robust termination helper with `SIGKILL` fallback to prevent stuck processes

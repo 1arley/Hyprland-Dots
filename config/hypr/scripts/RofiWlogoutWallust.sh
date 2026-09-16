@@ -7,9 +7,41 @@
 # ==============================================================================
 
 # Support headless/automatic execution from WallustSwww.sh
-if [[ "${1:-}" == "--auto" && -n "${2:-}" && -f "${2:-}" ]]; then
-    # We will invoke apply_wlogout_background after definitions
-    AUTO_IMAGE="$2"
+IS_AUTO=0
+IS_SILENT=0
+AUTO_IMAGE=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --auto)
+            IS_AUTO=1
+            IS_SILENT=1
+            if [[ -n "${2:-}" && ! "$2" =~ ^-- ]]; then
+                AUTO_IMAGE="$2"
+                shift
+            fi
+            ;;
+        --silent|-s)
+            IS_SILENT=1
+            ;;
+        *)
+            if [[ -z "$AUTO_IMAGE" && -f "$1" ]]; then
+                AUTO_IMAGE="$1"
+            fi
+            ;;
+    esac
+    shift
+done
+
+if [[ "$IS_AUTO" -eq 1 ]]; then
+    # Headless / automatic mode: guard against concurrent runs at startup/login
+    if command -v flock >/dev/null 2>&1; then
+        LOCKFILE="${XDG_RUNTIME_DIR:-/tmp}/wlogout_wallust_auto.lock"
+        exec 200>"$LOCKFILE"
+        if ! flock -n 200; then
+            exit 0
+        fi
+    fi
 else
     # Toggle: close rofi if already open
     if pidof rofi >/dev/null; then
@@ -215,9 +247,10 @@ except Exception:
 apply_wlogout_background() {
     local img_path="$1"
     local radius="${2:-$BLUR_RADIUS}"
+    local silent="${3:-$IS_SILENT}"
 
     if [[ ! -f "$img_path" ]]; then
-        if command -v notify-send >/dev/null 2>&1; then
+        if [[ "$silent" -ne 1 ]] && command -v notify-send >/dev/null 2>&1; then
             notify-send -u critical "Wlogout BG" "Image not found: $img_path"
         fi
         exit 1
@@ -227,15 +260,11 @@ apply_wlogout_background() {
     echo "$img_path" > "$RAW_WALL"
     echo "$radius" > "$BLUR_FILE"
 
-    if command -v notify-send >/dev/null 2>&1; then
-        notify-send -u low "Wlogout BG" "Applying image (Blur: ${radius}px) with ${CURRENT_THEME} theme..."
-    fi
-
     # 2. Render blurred background
     render_theme_background "$img_path" "${WLOGOUT_DIR}/bg.png" "$radius" "$CURRENT_THEME" "${THEMES_DIR}/fuji/grid_overlay.png"
 
-    # 3. Run wallust on the raw image to extract palette
-    if command -v wallust >/dev/null 2>&1; then
+    # 3. Run wallust on the raw image to extract palette (skip in auto mode since WallustSwww.sh already ran it)
+    if [[ "$IS_AUTO" -ne 1 ]] && command -v wallust >/dev/null 2>&1; then
         wallust run -s "$img_path" || true
     fi
 
@@ -621,14 +650,14 @@ EOF
         echo "$CURRENT_THEME" > "${WLOGOUT_DIR}/.current_theme"
     fi
 
-    if command -v notify-send >/dev/null 2>&1; then
+    if [[ "$silent" -ne 1 ]] && command -v notify-send >/dev/null 2>&1; then
         notify-send -u normal -i "preferences-desktop-theme" "Wlogout Wallust" "Applied image (${radius}px blur) with ${CURRENT_THEME} style! Accent: ${accent_color}"
     fi
 }
 
 # If called headlessly with --auto, run immediately and exit
-if [[ -n "${AUTO_IMAGE:-}" && -f "${AUTO_IMAGE:-}" ]]; then
-    apply_wlogout_background "$AUTO_IMAGE" "$BLUR_RADIUS"
+if [[ "$IS_AUTO" -eq 1 && -n "${AUTO_IMAGE:-}" && -f "${AUTO_IMAGE:-}" ]]; then
+    apply_wlogout_background "$AUTO_IMAGE" "$BLUR_RADIUS" "$IS_SILENT"
     exit 0
 fi
 

@@ -4,6 +4,8 @@
 
 ## Fixed:
 
+- `find` process in `copy.sh` would consume disk and cpu
+  - Process now finishes in 0.1ms
 - Animations weren't actually changing
 - Terminal variable `$term` not properly quoted causing failed starts
 - Moved `kitty` config fully to `.config/hypr/UserConfigs`

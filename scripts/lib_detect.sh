@@ -113,16 +113,38 @@ adjust_qt_quick_controls_style() {
     fi
   }
 
-  if find /usr/lib /usr/lib64 /usr/share -type d -path '*/qml/*/org/hyprland/style' -print -quit 2>/dev/null | grep -q .; then
+  local has_hyprland_style=0
+  for d in \
+    /usr/lib*/qt*/qml \
+    /usr/lib*/*-linux-gnu/qt*/qml \
+    /usr/lib*/qml \
+    /usr/share/qt*/qml \
+    /usr/share/qml; do
+    [ -d "$d" ] || continue
+    if [ -d "$d/org/hyprland/style" ]; then
+      has_hyprland_style=1
+      break
+    fi
+  done
+  if [ "$has_hyprland_style" -eq 1 ]; then
     style="org.hyprland.style"
   elif command -v dpkg >/dev/null 2>&1 && dpkg -s qml6-module-org-hyprland-style >/dev/null 2>&1; then
     style="org.hyprland.style"
   fi
 
-  if find /usr/lib /usr/lib64 /usr/share -type d -path '*/qml/*/kvantum' -print -quit 2>/dev/null | grep -q .; then
-    has_kvantum_qml=1
-    qt_style_override="kvantum"
-  fi
+  for d in \
+    /usr/lib*/qt*/qml \
+    /usr/lib*/*-linux-gnu/qt*/qml \
+    /usr/lib*/qml \
+    /usr/share/qt*/qml \
+    /usr/share/qml; do
+    [ -d "$d" ] || continue
+    if [ -d "$d/kvantum" ] || [ -d "$d/org/kde/kvantum" ]; then
+      has_kvantum_qml=1
+      qt_style_override="kvantum"
+      break
+    fi
+  done
 
   set_env_conf_vars "$source_hypr_dir/configs/ENVariables.conf"
   set_env_lua_vars "$source_hypr_dir/lua/env.lua"

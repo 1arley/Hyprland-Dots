@@ -97,6 +97,10 @@
 
 ## Added:
 
+- Added `wlogout` themese
+  - Thanks to `@Mr-Hasan-Hamid `
+    - For the code and examples
+    - There is a menu to select a theme `SUPER+CTRL+W`
 - Manage User Defaults Menu
   - From Quick Settings menu
     - Set default:

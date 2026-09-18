@@ -97,7 +97,9 @@
 
 ## Added:
 
-- Added `wlogout` themese
+- `Hyprland - OEM Default animation`
+  - A simple low overhead animation from the default LUA file
+- `wlogout` themese
   - Thanks to `@Mr-Hasan-Hamid `
     - For the code and examples
     - There is a menu to select a theme `SUPER+CTRL+W`

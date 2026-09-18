@@ -4,6 +4,7 @@
 
 ## Fixed:
 
+- Duplicate waybars at startup
 - `find` process in `copy.sh` would consume disk and cpu
   - Process now finishes in 0.1ms
 - Animations weren't actually changing

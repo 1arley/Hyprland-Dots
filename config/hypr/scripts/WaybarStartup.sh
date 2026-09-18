@@ -104,28 +104,37 @@ start_waybar_direct() {
 main() {
     local lock_file="${runtime_dir}/waybar-startup-${UID:-$(id -u)}.lock"
 
-    {
-        if command -v flock >/dev/null 2>&1; then
-            flock 9 || exit 1
-        fi
-
-        # If already running, nothing to do
-        is_waybar_running && exit 0
-
-        wait_for_wayland || true
-        sync_portal_env || true
-        ensure_wallust_waybar_colors
-
-        # Try systemd first if enabled, otherwise launch directly
-        if start_waybar_via_systemd; then
+    # Use a non-blocking lock to guarantee mutual exclusion without deadlocking
+    exec 9>"$lock_file"
+    if command -v flock >/dev/null 2>&1; then
+        if ! flock -n 9; then
+            exec 9>&-
             exit 0
         fi
+    fi
 
-        if start_waybar_direct; then
-            exit 0
-        fi
-        exit 1
-    } 9>"$lock_file"
+    # If already running, nothing to do
+    if is_waybar_running; then
+        exec 9>&-
+        exit 0
+    fi
+
+    wait_for_wayland || true
+    sync_portal_env || true
+    ensure_wallust_waybar_colors
+
+    # Close lock descriptor before launching background processes so children do not inherit the lock
+    exec 9>&-
+
+    # Try systemd first if enabled, otherwise launch directly
+    if start_waybar_via_systemd; then
+        exit 0
+    fi
+
+    if start_waybar_direct; then
+        exit 0
+    fi
+    exit 1
 }
 
 main

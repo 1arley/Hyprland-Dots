@@ -70,6 +70,8 @@
 
 ## Updated:
 
+- HOWTO doc on changing icons and themes
+  - Hard incorrect info on using env variables
 - Added check if `wallpaper-bank` already installed and current
   - Thanks to JoshuaRVLS for the fix
 - Express upgrade removed redundant questions

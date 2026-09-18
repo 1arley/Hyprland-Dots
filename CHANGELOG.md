@@ -4,6 +4,7 @@
 
 ## Fixed:
 
+- Improved version detection in `copy.sh`
 - Duplicate waybars at startup
 - `find` process in `copy.sh` would consume disk and cpu
   - Process now finishes in 0.1ms

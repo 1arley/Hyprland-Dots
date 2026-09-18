@@ -406,11 +406,44 @@ warn_hyprland_too_low_for_lua() {
 get_installed_dotfiles_version() {
   local hypr_dir="${XDG_CONFIG_HOME:-$HOME/.config}/hypr"
   if [ -d "$hypr_dir" ]; then
-    # Pick the highest semantic version among files named vX.Y.Z
-    find "$hypr_dir" -maxdepth 1 -type f -name 'v*.*.*' -printf '%f\n' 2>/dev/null |
+    local ver
+    # 1. Pick the highest semantic version among files named vX.Y.Z
+    ver=$(find "$hypr_dir" -maxdepth 1 -type f -name 'v*.*.*' -printf '%f\n' 2>/dev/null |
       sed 's/^v//' |
       sort -V |
-      tail -n1
+      tail -n1)
+    if [ -n "$ver" ]; then
+      echo "$ver"
+      return 0
+    fi
+    # 2. Check DOTS_VERSION in lua/env.lua
+    if [ -f "$hypr_dir/lua/env.lua" ]; then
+      ver=$(sed -n -E 's/^[[:space:]]*hl\.env\([[:space:]]*["'\'']DOTS_VERSION["'\''][[:space:]]*,[[:space:]]*["'\'']([^"'\'']+)["'\''].*$/\1/p' "$hypr_dir/lua/env.lua" | head -n1 || true)
+      if [ -n "$ver" ]; then
+        echo "$ver"
+        return 0
+      fi
+    fi
+    # 3. Check DOTS_VERSION in configs/ENVariables.conf or configs/system_env.lua
+    if [ -f "$hypr_dir/configs/ENVariables.conf" ]; then
+      ver=$(sed -n -E 's/^[[:space:]]*env[[:space:]]*=[[:space:]]*DOTS_VERSION[[:space:]]*,[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*$/\1/p' "$hypr_dir/configs/ENVariables.conf" | head -n1 || true)
+      if [ -n "$ver" ]; then
+        echo "$ver"
+        return 0
+      fi
+    fi
+    if [ -f "$hypr_dir/configs/system_env.lua" ]; then
+      ver=$(sed -n -E 's/^[[:space:]]*hl\.env\([[:space:]]*["'\'']DOTS_VERSION["'\''][[:space:]]*,[[:space:]]*["'\'']([^"'\'']+)["'\''].*$/\1/p' "$hypr_dir/configs/system_env.lua" | head -n1 || true)
+      if [ -n "$ver" ]; then
+        echo "$ver"
+        return 0
+      fi
+    fi
+    # 4. Fallback to exported $DOTS_VERSION
+    if [ -n "${DOTS_VERSION:-}" ]; then
+      echo "${DOTS_VERSION#v}"
+      return 0
+    fi
   fi
 }
 
@@ -430,7 +463,18 @@ is_kooldots_config() {
   local hypr_dir
   hypr_dir="$(config_home)/hypr"
   [ -d "$hypr_dir" ] || return 1
-  find "$hypr_dir" -maxdepth 1 -type f -name 'v*.*.*' -print -quit | grep -q .
+  if find "$hypr_dir" -maxdepth 1 -type f -name 'v*.*.*' -print -quit | grep -q .; then
+    return 0
+  fi
+  local installed_ver
+  installed_ver="$(get_installed_dotfiles_version)"
+  if [ -n "$installed_ver" ]; then
+    return 0
+  fi
+  if [ -d "$hypr_dir/UserConfigs" ] || [ -d "$hypr_dir/configs" ] || [ -f "$hypr_dir/hyprland.lua" ] || [ -f "$hypr_dir/hyprland.conf" ]; then
+    return 0
+  fi
+  return 1
 }
 
 is_oem_lua_config() {
@@ -452,7 +496,7 @@ require_kooldots_for_upgrade() {
   if is_kooldots_config; then
     return 0
   fi
-  echo "${WARN} Existing KoolDots config not deteced - run fresh install"
+  echo "${WARN} Existing KoolDots config not detected - run fresh install"
   return 1
 }
 

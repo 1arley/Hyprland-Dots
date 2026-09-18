@@ -101,6 +101,8 @@
 
 ## Added:
 
+- Wlogout theme - `hadi493` adapted from `hadi493/wlogout` repo
+  - Fully acreditied in source files
 - `Hyprland - OEM Default animation`
   - A simple low overhead animation from the default LUA file
 - `wlogout` themese

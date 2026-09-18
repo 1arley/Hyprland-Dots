@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 #  Rofi Wlogout Theme Switcher
-#  Switch between presets: Default (KoolDots), Sekiro, Silvia, Kurenai, Fuji
+#  Switch between presets: Default (KoolDots), Sekiro, Silvia, Kurenai, Fuji, Hadi493
 #  Includes backup and restore for current wlogout configurations
 # ==============================================================================
 
@@ -205,6 +205,8 @@ apply_theme() {
             notify-send -u normal -i "preferences-desktop-theme" "Wlogout Theme" "Restored: Default (KoolDots)"
         elif [[ "$theme" == "user_backup" ]]; then
             notify-send -u normal -i "document-revert" "Wlogout Theme" "Restored: User Backup Config"
+        elif [[ "$theme" == "hadi493" ]]; then
+            notify-send -u normal -i "preferences-desktop-theme" "Wlogout Theme" "Switched to: Hadi493 (Catppuccin Mocha)"
         else
             notify-send -u normal -i "preferences-desktop-theme" "Wlogout Theme" "Switched to: $theme"
         fi
@@ -229,6 +231,7 @@ declare -A PRESET_MAP=(
     ["🌸  Silvia (Sakura Pink)"]="silvia"
     ["🍁  Kurenai (Crimson Sakura)"]="kurenai"
     ["⛩️   Fuji (Mount Fuji & Torii / 富士)"]="fuji"
+    ["✨  Hadi493 (Catppuccin Mocha)"]="hadi493"
 )
 
 MENU_ITEMS=(
@@ -237,6 +240,7 @@ MENU_ITEMS=(
     "🌸  Silvia (Sakura Pink)"
     "🍁  Kurenai (Crimson Sakura)"
     "⛩️   Fuji (Mount Fuji & Torii / 富士)"
+    "✨  Hadi493 (Catppuccin Mocha)"
 )
 
 # Dynamically discover any other custom presets in THEMES_DIR
@@ -245,7 +249,7 @@ if [[ -d "$THEMES_DIR" ]]; then
         [[ -d "$dir" ]] || continue
         theme_name=$(basename "$dir")
         case "$theme_name" in
-            default|sekiro|silvia|kurenai|fuji|user_backup) continue ;;
+            default|sekiro|silvia|kurenai|fuji|hadi493|user_backup) continue ;;
             *)
                 label="🎨  ${theme_name}"
                 PRESET_MAP["$label"]="$theme_name"

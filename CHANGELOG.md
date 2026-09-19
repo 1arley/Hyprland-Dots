@@ -4,6 +4,7 @@
 
 ## Fixed:
 
+- Waybar service not restarting with `Refresh.sh`
 - Hyprland-Dock wasn't reliably toggleing on/off
 - Improved version detection in `copy.sh`
 - Duplicate waybars at startup

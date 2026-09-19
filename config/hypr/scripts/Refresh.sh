@@ -52,6 +52,10 @@ done
 # but disabled/unmanaged default to direct execution.
 is_waybar_systemd() {
   command -v systemctl >/dev/null 2>&1 || return 1
+  if ! systemctl --user is-active --quiet graphical-session.target 2>/dev/null && \
+     ! systemctl --user is-active --quiet wayland-session@*.target 2>/dev/null; then
+    return 1
+  fi
   systemctl --user cat waybar.service >/dev/null 2>&1 || return 1
   local enabled_state
   enabled_state="$(systemctl --user is-enabled waybar.service 2>/dev/null || true)"
@@ -105,42 +109,30 @@ ensure_wayland_env() {
 # systemd unit puts it outside that cgroup, where it survives the teardown.
 restart_waybar() {
   ensure_wayland_env
-  local restart_cmd
-  # Waybar only auto-discovers ~/.config/waybar by default; it has no
-  # knowledge of the hypr/-owned location, so direct launches must pass
-  # explicit -c/-s flags. Systemd-managed restarts rely on the packaged
-  # waybar.service unit, which is overridden separately (see
-  # config/systemd/user/waybar.service.d/override.conf) to add the same flags.
   local waybar_dir="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/waybar"
-  local waybar_cli_args="-c '$waybar_dir/config' -s '$waybar_dir/style.css'"
+  local waybar_config="$waybar_dir/config"
+  local waybar_style="$waybar_dir/style.css"
+  local restart_cmd
 
   if is_waybar_systemd; then
-    restart_cmd="systemctl --user stop waybar.service >/dev/null 2>&1 || true; pkill -INT -x waybar >/dev/null 2>&1 || true; pkill -INT -x .waybar-wrapped >/dev/null 2>&1 || true; sleep 0.2; if pgrep -x waybar >/dev/null 2>&1 || pgrep -x .waybar-wrapped >/dev/null 2>&1; then pkill -9 -x waybar >/dev/null 2>&1 || true; pkill -9 -x .waybar-wrapped >/dev/null 2>&1 || true; fi; sleep 0.1; systemctl --user reset-failed waybar.service >/dev/null 2>&1 || true; exec systemctl --user restart waybar.service"
+    restart_cmd="systemctl --user stop waybar.service >/dev/null 2>&1 || true; pkill -x waybar >/dev/null 2>&1 || true; pkill -x .waybar-wrapped >/dev/null 2>&1 || true; sleep 0.2; systemctl --user reset-failed waybar.service >/dev/null 2>&1 || true; systemctl --user restart waybar.service"
   else
-    restart_cmd="systemctl --user stop waybar.service >/dev/null 2>&1 || true; pkill -INT -x waybar >/dev/null 2>&1 || true; pkill -INT -x .waybar-wrapped >/dev/null 2>&1 || true; sleep 0.2; if pgrep -x waybar >/dev/null 2>&1 || pgrep -x .waybar-wrapped >/dev/null 2>&1; then pkill -9 -x waybar >/dev/null 2>&1 || true; pkill -9 -x .waybar-wrapped >/dev/null 2>&1 || true; fi; sleep 0.1; if command -v .waybar-wrapped >/dev/null 2>&1; then exec .waybar-wrapped $waybar_cli_args; else exec waybar $waybar_cli_args; fi"
+    restart_cmd="systemctl --user stop waybar.service >/dev/null 2>&1 || true; pkill -x waybar >/dev/null 2>&1 || true; pkill -x .waybar-wrapped >/dev/null 2>&1 || true; sleep 0.2; if command -v .waybar-wrapped >/dev/null 2>&1; then .waybar-wrapped -c \"$waybar_config\" -s \"$waybar_style\" >/dev/null 2>&1 & else waybar -c \"$waybar_config\" -s \"$waybar_style\" >/dev/null 2>&1 & fi"
   fi
 
-  local unit_name="waybar-restart-$UID"
+  local unit_name="waybar-restart-$$-$RANDOM"
   if command -v systemd-run >/dev/null 2>&1; then
-    # If a previous restart transient unit is already running, let it complete
-    if systemctl --user is-active --quiet "${unit_name}.service" 2>/dev/null; then
-      return 0
-    fi
-    # Reset failed status in case a previous transient run ended in non-zero exit
-    systemctl --user reset-failed "${unit_name}.service" >/dev/null 2>&1 || true
-    if systemd-run --user --collect --quiet --no-block \
+    systemd-run --user --collect --quiet --no-block \
       --unit="$unit_name" \
+      --property=KillMode=none \
       --setenv=WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-}" \
       --setenv=XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" \
       --setenv=HYPRLAND_INSTANCE_SIGNATURE="${HYPRLAND_INSTANCE_SIGNATURE:-}" \
       --setenv=WEATHER_UNITS="${WEATHER_UNITS:-}" \
-      /bin/bash -c "$restart_cmd" >/dev/null 2>&1; then
-      return 0
-    fi
+      /bin/bash -c "$restart_cmd" >/dev/null 2>&1 || setsid /bin/bash -c "$restart_cmd" >/dev/null 2>&1 &
+  else
+    setsid /bin/bash -c "$restart_cmd" >/dev/null 2>&1 &
   fi
-
-  # Fallback when systemd-run is unavailable: detach as far as we can.
-  setsid /bin/bash -c "$restart_cmd" >/dev/null 2>&1 &
 }
 
 restart_waybar

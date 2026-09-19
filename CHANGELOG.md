@@ -4,6 +4,7 @@
 
 ## Fixed:
 
+- Hyprland-Dock wasn't reliably toggleing on/off
 - Improved version detection in `copy.sh`
 - Duplicate waybars at startup
 - `find` process in `copy.sh` would consume disk and cpu

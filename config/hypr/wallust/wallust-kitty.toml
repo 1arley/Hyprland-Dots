@@ -3,7 +3,7 @@
 
 backend = "fastresize"
 color_space = "labmixed"
-palette = "softdark16"
+palette = "dark16"
 threshold = 11
 
 [templates]

@@ -1024,43 +1024,22 @@ INSTALLED_VERSION_AT_START="$(get_installed_dotfiles_version || true)"
 # quickshell (ags alternative)
 DIRPATH_QS="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell"
 
-if [ ! -d "$DIRPATH_QS" ]; then
-  echo "${INFO} - quickshell config not found, copying new config."
-  if [ -d "$DOTFILES_DIR/config/quickshell" ]; then
-    cp -r "$DOTFILES_DIR/config/quickshell/" "$DIRPATH_QS" 2>&1 | tee -a "$LOG"
-  fi
-else
-  # If default shell.qml exists, it blocks named config subdirectory detection
-  # Remove it to enable the overview config to be found
-  if [ -f "$DIRPATH_QS/shell.qml" ]; then
-    echo "${NOTE} - Removing default shell.qml to enable quickshell overview config detection" 2>&1 | tee -a "$LOG"
-    rm "$DIRPATH_QS/shell.qml"
-  fi
+if [ -d "$DIRPATH_QS" ]; then
+  # Back up existing quickshell config
+  BACKUP_DIR=$(get_backup_dirname)
+  mv "$DIRPATH_QS" "$DIRPATH_QS-backup-$BACKUP_DIR" 2>&1 | tee -a "$LOG"
+  echo -e "${NOTE} - Backed up quickshell to $DIRPATH_QS-backup-$BACKUP_DIR"
+fi
 
-  if [ "$EXPRESS_MODE" -eq 1 ]; then
-    echo "${NOTE} Express mode: keeping existing quickshell config." 2>&1 | tee -a "$LOG"
+echo "${INFO} - Copying quickshell config..." 2>&1 | tee -a "$LOG"
+if [ -d "$DOTFILES_DIR/config/quickshell" ]; then
+  if cp -r "$DOTFILES_DIR/config/quickshell/" "$DIRPATH_QS" 2>&1 | tee -a "$LOG"; then
+    echo "${OK} - ${YELLOW}quickshell${RESET} copied successfully." 2>&1 | tee -a "$LOG"
+    # Remove default shell.qml from copy to enable overview detection
+    rm -f "$DIRPATH_QS/shell.qml" 2>&1 | tee -a "$LOG"
   else
-    read -p "${CAT} Do you want to overwrite your existing ${YELLOW}quickshell${RESET} config? [y/N] " answer_qs
-    case "$answer_qs" in
-    [Yy]*)
-      BACKUP_DIR=$(get_backup_dirname)
-      mv "$DIRPATH_QS" "$DIRPATH_QS-backup-$BACKUP_DIR" 2>&1 | tee -a "$LOG"
-      echo -e "${NOTE} - Backed up quickshell to $DIRPATH_QS-backup-$BACKUP_DIR"
-
-      cp -r "$DOTFILES_DIR/config/quickshell/" "$DIRPATH_QS" 2>&1 | tee -a "$LOG"
-      if [ $? -eq 0 ]; then
-        echo "${OK} - ${YELLOW}quickshell${RESET} overwritten successfully."
-        # Remove default shell.qml from new copy to enable overview detection
-        rm -f "$DIRPATH_QS/shell.qml" 2>&1 | tee -a "$LOG"
-      else
-        echo "${ERROR} - Failed to copy ${YELLOW}quickshell${RESET} config."
-        exit 1
-      fi
-      ;;
-    *)
-      echo "${NOTE} - Skipping overwrite of quickshell config."
-      ;;
-    esac
+    echo "${ERROR} - Failed to copy ${YELLOW}quickshell${RESET} config." 2>&1 | tee -a "$LOG"
+    exit 1
   fi
 fi
 

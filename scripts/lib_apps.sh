@@ -27,8 +27,8 @@ enable_blueman() {
   if command -v blueman-applet >/dev/null 2>&1; then
     local target="$cfg_home/hypr/UserConfigs/user_startup.lua"
     if [ -f "$target" ]; then
-      if grep -q '^[[:space:]]*--[[:space:]]*"blueman-applet"' "$target"; then
-        sed -i 's/^[[:space:]]*--[[:space:]]*\("blueman-applet"\)/\1/' "$target"
+      if sed -n '/local startup_commands = {/,/}/p' "$target" | grep -q '^[[:space:]]*--[[:space:]]*"blueman-applet"'; then
+        sed -i '/local startup_commands = {/,/}/s/^[[:space:]]*--[[:space:]]*\("blueman-applet"\)/\1/' "$target"
         echo "${INFO:-[INFO]} Enabled blueman-applet in user_startup.lua" 2>&1 | tee -a "$log"
       elif ! grep -q '"blueman-applet"' "$target"; then
         sed -i '/local startup_commands = {/a \  "blueman-applet",' "$target"

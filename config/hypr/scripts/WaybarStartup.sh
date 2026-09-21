@@ -91,11 +91,13 @@ start_waybar_direct() {
         return 0
     fi
     if command -v waybar >/dev/null 2>&1; then
-        waybar -c "$WAYBAR_CONFIG_ARG" -s "$WAYBAR_STYLE_ARG" >/dev/null 2>&1 &
+        waybar -c "$WAYBAR_CONFIG_ARG" -s "$WAYBAR_STYLE_ARG" 9>&- >/dev/null 2>&1 &
+        wait_for_waybar
         return 0
     fi
     if command -v .waybar-wrapped >/dev/null 2>&1; then
-        .waybar-wrapped -c "$WAYBAR_CONFIG_ARG" -s "$WAYBAR_STYLE_ARG" >/dev/null 2>&1 &
+        .waybar-wrapped -c "$WAYBAR_CONFIG_ARG" -s "$WAYBAR_STYLE_ARG" 9>&- >/dev/null 2>&1 &
+        wait_for_waybar
         return 0
     fi
     return 1
@@ -123,17 +125,17 @@ main() {
     sync_portal_env || true
     ensure_wallust_waybar_colors
 
-    # Close lock descriptor before launching background processes so children do not inherit the lock
-    exec 9>&-
-
     # Try systemd first if enabled, otherwise launch directly
     if start_waybar_via_systemd; then
+        exec 9>&-
         exit 0
     fi
 
     if start_waybar_direct; then
+        exec 9>&-
         exit 0
     fi
+    exec 9>&-
     exit 1
 }
 

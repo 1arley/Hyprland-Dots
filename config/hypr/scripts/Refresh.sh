@@ -115,9 +115,9 @@ restart_waybar() {
   local restart_cmd
 
   if is_waybar_systemd; then
-    restart_cmd="systemctl --user stop waybar.service >/dev/null 2>&1 || true; pkill -x waybar >/dev/null 2>&1 || true; pkill -x .waybar-wrapped >/dev/null 2>&1 || true; sleep 0.2; systemctl --user reset-failed waybar.service >/dev/null 2>&1 || true; systemctl --user restart waybar.service"
+    restart_cmd="systemctl --user stop waybar.service >/dev/null 2>&1 || true; pkill -INT -x waybar >/dev/null 2>&1 || true; pkill -INT -x .waybar-wrapped >/dev/null 2>&1 || true; pkill -x waybar >/dev/null 2>&1 || true; pkill -x .waybar-wrapped >/dev/null 2>&1 || true; sleep 0.2; if pgrep -x waybar >/dev/null 2>&1 || pgrep -x .waybar-wrapped >/dev/null 2>&1; then pkill -9 -x waybar >/dev/null 2>&1 || true; pkill -9 -x .waybar-wrapped >/dev/null 2>&1 || true; fi; sleep 0.1; systemctl --user reset-failed waybar.service >/dev/null 2>&1 || true; systemctl --user restart waybar.service"
   else
-    restart_cmd="systemctl --user stop waybar.service >/dev/null 2>&1 || true; pkill -x waybar >/dev/null 2>&1 || true; pkill -x .waybar-wrapped >/dev/null 2>&1 || true; sleep 0.2; if command -v .waybar-wrapped >/dev/null 2>&1; then .waybar-wrapped -c \"$waybar_config\" -s \"$waybar_style\" >/dev/null 2>&1 & else waybar -c \"$waybar_config\" -s \"$waybar_style\" >/dev/null 2>&1 & fi"
+    restart_cmd="systemctl --user stop waybar.service >/dev/null 2>&1 || true; pkill -INT -x waybar >/dev/null 2>&1 || true; pkill -INT -x .waybar-wrapped >/dev/null 2>&1 || true; pkill -x waybar >/dev/null 2>&1 || true; pkill -x .waybar-wrapped >/dev/null 2>&1 || true; sleep 0.2; if pgrep -x waybar >/dev/null 2>&1 || pgrep -x .waybar-wrapped >/dev/null 2>&1; then pkill -9 -x waybar >/dev/null 2>&1 || true; pkill -9 -x .waybar-wrapped >/dev/null 2>&1 || true; fi; sleep 0.1; if ! pgrep -x waybar >/dev/null 2>&1 && ! pgrep -x .waybar-wrapped >/dev/null 2>&1; then if command -v .waybar-wrapped >/dev/null 2>&1; then .waybar-wrapped -c \"$waybar_config\" -s \"$waybar_style\" >/dev/null 2>&1 & else waybar -c \"$waybar_config\" -s \"$waybar_style\" >/dev/null 2>&1 & fi; fi"
   fi
 
   local unit_name="waybar-restart-$$-$RANDOM"

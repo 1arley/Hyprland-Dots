@@ -4,6 +4,7 @@
 
 ## Fixed:
 
+- Another cause of duplicate waybars
 - NixOS installed wrong fastfetch config file
 - Kitty background color was bright red
 - Waybar service not restarting with `Refresh.sh`

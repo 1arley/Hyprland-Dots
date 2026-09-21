@@ -7,6 +7,37 @@
 # ==================================================
 # Copy helpers split into phases to keep copy.sh lean.
 
+# Helper: configure distro-specific fastfetch config if available
+_configure_fastfetch_distro_config() {
+  local log="${1:-/dev/null}"
+  local ff_dir="${XDG_CONFIG_HOME:-$HOME/.config}/fastfetch"
+  [ -d "$ff_dir" ] || return 0
+
+  local distro_id=""
+  local id_like=""
+  if [ -f /etc/os-release ]; then
+    distro_id=$(grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"'\''')
+    id_like=$(grep -E '^ID_LIKE=' /etc/os-release | cut -d= -f2 | tr -d '"'\''')
+  fi
+
+  local target_cfg=""
+  if [ -n "$distro_id" ] && [ -f "$ff_dir/kooldots-${distro_id}.jsonc" ]; then
+    target_cfg="$ff_dir/kooldots-${distro_id}.jsonc"
+  elif [ -n "$id_like" ]; then
+    for like in $id_like; do
+      if [ -f "$ff_dir/kooldots-${like}.jsonc" ]; then
+        target_cfg="$ff_dir/kooldots-${like}.jsonc"
+        break
+      fi
+    done
+  fi
+
+  if [ -n "$target_cfg" ]; then
+    cp -f "$target_cfg" "$ff_dir/config.jsonc" 2>&1 | tee -a "$log"
+    echo -e "${OK:-[OK]} - Applied $(basename "$target_cfg") as fastfetch config.jsonc" 2>&1 | tee -a "$log"
+  fi
+}
+
 copy_phase1() {
   local log="$1"
   local run_mode="${2:-${RUN_MODE:-}}"
@@ -17,6 +48,9 @@ copy_phase1() {
     if [ -d "$DIRPATH" ]; then
       if [ "$run_mode" = "express" ]; then
         echo -e "${NOTE:-[NOTE]} - Express mode: keeping existing ${YELLOW:-}$DIR2${RESET:-} config." 2>&1 | tee -a "$log"
+        if [ "$DIR2" = "fastfetch" ] && [ ! -f "$DIRPATH/config.jsonc" ]; then
+          _configure_fastfetch_distro_config "$log"
+        fi
         continue
       fi
       while true; do
@@ -30,6 +64,9 @@ copy_phase1() {
           echo -e "${NOTE:-[NOTE]} - Backed up $DIR2 to $DIRPATH-backup-$BACKUP_DIR." 2>&1 | tee -a "$log"
           cp -r "$base/config/$DIR2" "${XDG_CONFIG_HOME:-$HOME/.config}/$DIR2" 2>&1 | tee -a "$log"
           echo -e "${OK:-[OK]} - Replaced $DIR2 with new configuration." 2>&1 | tee -a "$log"
+          if [ "$DIR2" = "fastfetch" ]; then
+            _configure_fastfetch_distro_config "$log"
+          fi
           break
           ;;
         [Nn]*)
@@ -42,6 +79,9 @@ copy_phase1() {
     else
       cp -r "$base/config/$DIR2" "${XDG_CONFIG_HOME:-$HOME/.config}/$DIR2" 2>&1 | tee -a "$log"
       echo -e "${OK:-[OK]} - Copy completed for ${YELLOW:-}$DIR2${RESET:-}" 2>&1 | tee -a "$log"
+      if [ "$DIR2" = "fastfetch" ]; then
+        _configure_fastfetch_distro_config "$log"
+      fi
     fi
   done
 

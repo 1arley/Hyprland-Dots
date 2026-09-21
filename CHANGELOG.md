@@ -4,6 +4,8 @@
 
 ## Fixed:
 
+- NixOS installed wrong fastfetch config file
+- Kitty background color was bright red
 - Waybar service not restarting with `Refresh.sh`
 - Hyprland-Dock wasn't reliably toggleing on/off
 - Improved version detection in `copy.sh`

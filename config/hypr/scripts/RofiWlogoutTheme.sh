@@ -295,11 +295,14 @@ if [[ -x "${SCRIPTSDIR}/RofiFocusedWallpaperLink.sh" ]]; then
     "${SCRIPTSDIR}/RofiFocusedWallpaperLink.sh" >/dev/null 2>&1 || true
 fi
 
+NUM_LINES="${#DISPLAY_OPTIONS[@]}"
+(( NUM_LINES < 10 )) && NUM_LINES=10
+
 CHOICE=$(printf '%s\n' "${DISPLAY_OPTIONS[@]}" | rofi -i -dmenu \
     -p "Wlogout Preset" \
     -mesg "Active: $CURRENT_PRESET | Select preset or action to apply" \
     -selected-row "$DEFAULT_ROW" \
-    -theme-str "listview { columns: 1; } window { width: 55%; }" \
+    -theme-str "listview { columns: 1; lines: ${NUM_LINES}; } window { width: 55%; }" \
     -config "$ROFI_CONFIG")
 
 if [[ -z "$CHOICE" ]]; then

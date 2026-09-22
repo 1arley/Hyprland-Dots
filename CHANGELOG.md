@@ -4,6 +4,7 @@
 
 ## Fixed:
 
+- Wlogout menu too short to display all options
 - Another cause of duplicate waybars
 - NixOS installed wrong fastfetch config file
 - Kitty background color was bright red

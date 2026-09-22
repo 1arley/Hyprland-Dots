@@ -4,6 +4,10 @@
 
 ## Fixed:
 
+- Mouse zoom guesture causing hyprland to stall 
+   - Thank you Angel Spano  `@jasueh` 
+- Quickshell `overview` mouse functions restored 
+  - Thank you to ``@nettucui`` for the code to fix it 
 - Wlogout menu too short to display all options
 - Another cause of duplicate waybars
 - NixOS installed wrong fastfetch config file

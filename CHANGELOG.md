@@ -4,6 +4,9 @@
 
 ## Fixed:
 
+
+- Replaced `io.open` calls with LUA API 
+   - This prevents hyprland stall when code active
 - Mouse zoom guesture causing hyprland to stall 
    - Thank you Angel Spano  `@jasueh` 
 - Quickshell `overview` mouse functions restored 

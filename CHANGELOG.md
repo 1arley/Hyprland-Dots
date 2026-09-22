@@ -77,6 +77,9 @@
 
 ## Updated:
 
+- `kitty.conf` added `remember_window_size no`
+  - Kitty v0.49+ split window opens terminal w/o this setting
+  - Thanks to `@卄乇尺ㄩ'ㄩ尺` for posting it
 - HOWTO doc on changing icons and themes
   - Hard incorrect info on using env variables
 - Added check if `wallpaper-bank` already installed and current

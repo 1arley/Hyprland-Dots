@@ -125,8 +125,33 @@ local app_binds = {
   { "SUPER CTRL", "SPACE", "$HOME/.config/hypr/scripts/float.all.samesize.lua", "Float all windows same size" },
   -- NOTE: Dropterminal is currently certified only with kitty. Not all terminals behave correctly as a dropdown.
   { "SUPER SHIFT", "Return", "$HOME/.config/hypr/scripts/Dropterminal.sh kitty", "DropDown terminal" },
-  { "SUPER ALT", "mouse_down", "$HOME/.config/hypr/scripts/Zoom.sh in", "zoom in" },
-  { "SUPER ALT", "mouse_up", "$HOME/.config/hypr/scripts/Zoom.sh out", "zoom out" },
+  {
+    "SUPER ALT",
+    "mouse_down",
+    function()
+      local factor = (hl and hl.get_config and (hl.get_config("cursor.zoom_factor") or hl.get_config("cursor:zoom_factor"))) or 1.0
+      if factor < 1.0 then factor = 1.0 end
+      local new_factor = factor * 1.5
+      if new_factor > 16.0 then new_factor = 16.0 end
+      if hl and hl.config then
+        hl.config({ cursor = { zoom_factor = new_factor } })
+      end
+    end,
+    "zoom in",
+  },
+  {
+    "SUPER ALT",
+    "mouse_up",
+    function()
+      local factor = (hl and hl.get_config and (hl.get_config("cursor.zoom_factor") or hl.get_config("cursor:zoom_factor"))) or 1.0
+      local new_factor = factor / 1.5
+      if new_factor < 1.0 then new_factor = 1.0 end
+      if hl and hl.config then
+        hl.config({ cursor = { zoom_factor = new_factor } })
+      end
+    end,
+    "zoom out",
+  },
   { "SUPER CTRL ALT", "B", "pkill -SIGUSR1 waybar", "toggle waybar on/off" },
   { "SUPER CTRL", "B", "$HOME/.config/hypr/scripts/WaybarStyles.sh", "waybar styles menu" },
   { "SUPER ALT", "B", "$HOME/.config/hypr/scripts/WaybarLayout.sh", "waybar layout menu" },
@@ -320,16 +345,33 @@ bind("SUPER ALT", "period", dispatch("layoutmsg", "swapcol r"), { description = 
 bind(
   "SUPER ALT",
   "H",
-  exec_cmd("hyprctl keyword scrolling:direction right"),
+  function()
+    if hl and hl.config then
+      hl.config({ scrolling = { direction = "right" } })
+    end
+  end,
   { description = "Horizonal scroll right" }
 )
-bind("SUPER CTRL", "V", exec_cmd("hyprctl keyword scrolling:direction down"), { description = "Vertical Scroll down" })
+bind(
+  "SUPER CTRL",
+  "V",
+  function()
+    if hl and hl.config then
+      hl.config({ scrolling = { direction = "down" } })
+    end
+  end,
+  { description = "Vertical Scroll down" }
+)
 bind(
   "SUPER ALT",
   "S",
-  exec_cmd(
-    'bash -c \'[[ $(hyprctl getoption scrolling:direction -j | jq -r ".str") == "right" ]] && hyprctl keyword scrolling:direction down || hyprctl keyword scrolling:direction right\''
-  ),
+  function()
+    if hl and hl.config then
+      local cur = (hl.get_config and (hl.get_config("scrolling.direction") or hl.get_config("scrolling:direction"))) or "right"
+      local next_dir = (cur == "right") and "down" or "right"
+      hl.config({ scrolling = { direction = next_dir } })
+    end
+  end,
   { description = "toggle scrolling V/H" }
 )
 -- Section: Hyprview expose controls

@@ -18,6 +18,16 @@
 
 local FALLBACK_INTERNAL = "eDP-1"
 
+local function read_file(path)
+  local f = io.open(path, "r")
+  if not f then
+    return nil
+  end
+  local content = f:read("*a")
+  f:close()
+  return content
+end
+
 local function read_command(command)
   local pipe = io.popen(command, "r")
   if not pipe then
@@ -34,6 +44,13 @@ local function is_internal(name)
 end
 
 local function is_lid_closed()
+  -- Try fast direct file reads without spawning subshells
+  for _, path in ipairs({ "/proc/acpi/button/lid/LID0/state", "/proc/acpi/button/lid/LID/state" }) do
+    local content = read_file(path)
+    if content then
+      return content:find("closed", 1, true) ~= nil
+    end
+  end
   local state = read_command("cat /proc/acpi/button/lid/*/state 2>/dev/null")
   return state:find("closed", 1, true) ~= nil
 end
@@ -41,18 +58,24 @@ end
 -- Gather all physically connected DRM connectors from sysfs
 local function connected_drm_connectors()
   local connectors = {}
-  local command = table.concat({
-    "for status in /sys/class/drm/card*-*/status; do",
-    ' [ -r "$status" ] || continue;',
-    ' [ "$(cat "$status" 2>/dev/null)" = connected ] || continue;',
-    " dir=${status%/status};",
-    ' echo "${dir##*/}";',
-    "done",
-  }, " ")
-  for line in read_command(command):gmatch("%S+") do
-    local name = line:match("^card%d+%-(.+)$")
-    if name then
-      connectors[#connectors + 1] = name
+  -- Direct check for cards 0 to 4 without running a complex bash loop
+  for card = 0, 4 do
+    local p = io.popen("ls /sys/class/drm/card" .. card .. "-*/status 2>/dev/null", "r")
+    if p then
+      for path in p:lines() do
+        local f = io.open(path, "r")
+        if f then
+          local status = f:read("*l") or ""
+          f:close()
+          if status:match("^connected") then
+            local name = path:match("card%d+%-(.+)%/status$")
+            if name then
+              connectors[#connectors + 1] = name
+            end
+          end
+        end
+      end
+      p:close()
     end
   end
   return connectors

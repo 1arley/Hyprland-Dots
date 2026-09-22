@@ -514,13 +514,28 @@ bind(
 bind(
   "SUPER ALT",
   "mouse_down",
-  exec_cmd("$HOME/.config/hypr/scripts/Zoom.sh in"),
+  function()
+    local factor = (hl and hl.get_config and (hl.get_config("cursor.zoom_factor") or hl.get_config("cursor:zoom_factor"))) or 1.0
+    if factor < 1.0 then factor = 1.0 end
+    local new_factor = factor * 1.5
+    if new_factor > 16.0 then new_factor = 16.0 end
+    if hl and hl.config then
+      hl.config({ cursor = { zoom_factor = new_factor } })
+    end
+  end,
   { description = "zoom in" }
 )
 bind(
   "SUPER ALT",
   "mouse_up",
-  exec_cmd("$HOME/.config/hypr/scripts/Zoom.sh out"),
+  function()
+    local factor = (hl and hl.get_config and (hl.get_config("cursor.zoom_factor") or hl.get_config("cursor:zoom_factor"))) or 1.0
+    local new_factor = factor / 1.5
+    if new_factor < 1.0 then new_factor = 1.0 end
+    if hl and hl.config then
+      hl.config({ cursor = { zoom_factor = new_factor } })
+    end
+  end,
   { description = "zoom out" }
 )
 bind("SUPER CTRL ALT", "B", exec_cmd("pkill -SIGUSR1 waybar"), { description = "toggle waybar on/off" })
@@ -672,16 +687,33 @@ bind(
 bind(
   "SUPER ALT",
   "H",
-  exec_cmd("hyprctl keyword scrolling:direction right"),
+  function()
+    if hl and hl.config then
+      hl.config({ scrolling = { direction = "right" } })
+    end
+  end,
   { description = "Horizonal scroll right" }
 )
-bind("SUPER CTRL", "V", exec_cmd("hyprctl keyword scrolling:direction down"), { description = "Vertical Scroll down" })
+bind(
+  "SUPER CTRL",
+  "V",
+  function()
+    if hl and hl.config then
+      hl.config({ scrolling = { direction = "down" } })
+    end
+  end,
+  { description = "Vertical Scroll down" }
+)
 bind(
   "SUPER ALT",
   "S",
-  exec_cmd(
-    'bash -c \'[[ $(hyprctl getoption scrolling:direction -j | jq -r ".str") == "right" ]] && hyprctl keyword scrolling:direction down || hyprctl keyword scrolling:direction right\''
-  ),
+  function()
+    if hl and hl.config then
+      local cur = (hl.get_config and (hl.get_config("scrolling.direction") or hl.get_config("scrolling:direction"))) or "right"
+      local next_dir = (cur == "right") and "down" or "right"
+      hl.config({ scrolling = { direction = next_dir } })
+    end
+  end,
   { description = "toggle scrolling V/H" }
 )
 -- Hyprview: SUPER CTRL+Tab (bound later after workspace/group Tab binds)

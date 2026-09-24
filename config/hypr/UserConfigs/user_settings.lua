@@ -10,8 +10,8 @@
 hl.config({
   input = {
     kb_layout = "us",
-    kb_variant = "",
-    kb_model = "",
+    kb_variant = "intl",
+    kb_model = "pc105",
     kb_options = "",
     kb_rules = "",
     repeat_rate = 50,

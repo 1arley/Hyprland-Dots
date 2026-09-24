@@ -58,7 +58,7 @@ hl.config({
 hl.config({
   input = {
     kb_layout = "us",
-    kb_variant = "",
+    kb_variant = "intl",
     kb_model = "pc105",
     kb_options = "",
     kb_rules = "",

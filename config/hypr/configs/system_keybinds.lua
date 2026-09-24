@@ -41,8 +41,8 @@ if editor == nil or editor == "" then
   editor = "micro"
 end
 
-local scripts = "$HOME/.config/hypr/scripts"
-local rofi_config = "$HOME/.config/hypr/rofi/config.rasi"
+local scripts = config_home .. "/hypr/scripts"
+local rofi_config = config_home .. "/hypr/rofi/config.rasi"
 
 local function bind_exec(mods, key, command, description, options)
   local opts = {}
@@ -74,6 +74,32 @@ local function send_shortcut_once(mods, key)
       hl.timer(function()
         hl.dispatch(hl.dsp.send_key_state({ mods = mods, key = key, state = "up" }))
       end, { timeout = 50, type = "oneshot" })
+    end
+  end
+end
+
+local function active_window_is_terminal()
+  if not (hl and hl.get_active_window) then
+    return false
+  end
+  local ok, window = pcall(hl.get_active_window)
+  if not ok or type(window) ~= "table" then
+    return false
+  end
+  for _, tag in ipairs(window.tags or {}) do
+    if type(tag) == "string" and tag:gsub("%*$", "") == "terminal" then
+      return true
+    end
+  end
+  return false
+end
+
+local function universal_clipboard_shortcut(default_mods, default_key, terminal_mods, terminal_key)
+  return function()
+    if active_window_is_terminal() then
+      send_shortcut_once(terminal_mods, terminal_key)()
+    else
+      send_shortcut_once(default_mods, default_key)()
     end
   end
 end
@@ -138,10 +164,11 @@ bind_exec("SUPER SHIFT", "B", browser, "Browser")
 bind_exec("SUPER SHIFT ALT", "B", browser .. " --private", "Browser (private)")
 bind_exec("SUPER SHIFT", "N", editor, "Editor")
 
--- Universal clipboard shortcuts from Omarchy.
+-- Universal clipboard shortcuts from Omarchy. Terminals use Ctrl+Shift for
+-- copy/paste, while graphical applications use the regular Ctrl shortcuts.
 bind("SUPER", "A", send_shortcut_once("CTRL", "A"), { description = "Select all" })
-bind("SUPER", "C", send_shortcut_once("CTRL", "C"), { description = "Universal copy" })
-bind("SUPER", "V", send_shortcut_once("CTRL", "V"), { description = "Universal paste" })
+bind("SUPER", "C", universal_clipboard_shortcut("CTRL", "C", "CTRL SHIFT", "C"), { description = "Universal copy" })
+bind("SUPER", "V", universal_clipboard_shortcut("CTRL", "V", "CTRL SHIFT", "V"), { description = "Universal paste" })
 bind("SUPER", "X", send_shortcut_once("CTRL", "X"), { description = "Universal cut" })
 bind_exec("SUPER CTRL", "V", scripts .. "/ClipManager.sh", "Clipboard manager")
 
@@ -201,8 +228,6 @@ bind_dispatch("SUPER SHIFT", "down", "swapwindow", "d", "Swap window down")
 
 bind_dispatch("ALT", "Tab", "cyclenext", "", "Focus on next window")
 bind_dispatch("ALT SHIFT", "Tab", "cyclenext", "prev", "Focus on previous window")
-bind_dispatch("ALT", "Tab", "bringactivetotop", "", "Reveal active window on top")
-bind_dispatch("ALT SHIFT", "Tab", "bringactivetotop", "", "Reveal active window on top")
 bind("CTRL ALT", "Tab", raw_dispatch_cmd("focusmonitor +1"), { description = "Focus on next monitor" })
 bind("CTRL ALT SHIFT", "Tab", raw_dispatch_cmd("focusmonitor -1"), { description = "Focus on previous monitor" })
 

@@ -1,3 +1,4 @@
+-- hypr-omarchy-tool keybind helper
 local M = {}
 
 local function trim(value)

@@ -91,3 +91,61 @@ local dispatch = user_keybinds_helper.dispatch
 local bind = user_keybinds_helper.bind
 local unbind = user_keybinds_helper.unbind
 
+
+-- BEGIN hypr-omarchy-tool resize
+-- Managed resize aliases installed by hypr-omarchy-tool.
+-- The block is self-contained so it also works on installations without the
+-- KoolDots keybind helper.
+
+local function resize_action(x, y)
+  return function()
+    if hl.dsp and hl.dsp.window and hl.dsp.window.resize then
+      hl.dispatch(hl.dsp.window.resize({ x = x, y = y, relative = true }))
+    else
+      local command = "resizeactive " .. tostring(x) .. " " .. tostring(y)
+      if hl.dsp and hl.dsp.exec_raw then
+        hl.dispatch(hl.dsp.exec_raw(command))
+      else
+        hl.exec_cmd("hyprctl dispatch " .. command)
+      end
+    end
+  end
+end
+
+local function bind_resize(mods, key, x, y, description)
+  local chord = mods:gsub("%s+", " + ") .. " + " .. key
+  if hl.unbind then
+    pcall(hl.unbind, chord)
+    pcall(hl.unbind, mods, key)
+  end
+  hl.bind(chord, resize_action(x, y), {
+    description = description,
+    repeating = true,
+  })
+end
+
+-- Width: Super + plus / equal, Super + minus.
+bind_resize("SUPER", "plus", 50, 0, "Expand window width")
+bind_resize("SUPER", "equal", 50, 0, "Expand window width")
+bind_resize("SUPER", "minus", -50, 0, "Shrink window width")
+
+-- Height: add Shift.
+bind_resize("SUPER SHIFT", "equal", 0, 50, "Expand window height")
+bind_resize("SUPER SHIFT", "minus", 0, -50, "Shrink window height")
+
+-- Fine and large steps.
+bind_resize("SUPER ALT", "plus", 10, 0, "Expand window width slightly")
+bind_resize("SUPER ALT", "minus", -10, 0, "Shrink window width slightly")
+bind_resize("SUPER ALT SHIFT", "equal", 0, 10, "Expand window height slightly")
+bind_resize("SUPER ALT SHIFT", "minus", 0, -10, "Shrink window height slightly")
+bind_resize("SUPER CTRL", "plus", 100, 0, "Expand window width a lot")
+bind_resize("SUPER CTRL", "minus", -100, 0, "Shrink window width a lot")
+bind_resize("SUPER CTRL SHIFT", "equal", 0, 100, "Expand window height a lot")
+bind_resize("SUPER CTRL SHIFT", "minus", 0, -100, "Shrink window height a lot")
+
+-- Numpad aliases.
+bind_resize("SUPER", "KP_Add", 50, 0, "Expand window width")
+bind_resize("SUPER", "KP_Subtract", -50, 0, "Shrink window width")
+bind_resize("SUPER SHIFT", "KP_Add", 0, 50, "Expand window height")
+bind_resize("SUPER SHIFT", "KP_Subtract", 0, -50, "Shrink window height")
+-- END hypr-omarchy-tool resize

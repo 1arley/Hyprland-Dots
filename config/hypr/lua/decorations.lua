@@ -4,10 +4,32 @@
 --  License: GNU GPLv3
 --  SPDX-License-Identifier: GPL-3.0-or-later
 -- ==================================================
+--
+-- Decoration settings for the Lua Hyprland configuration.
+-- Colors come from theme_colors.lua, which reads the latest Wallust palette.
+-- If Wallust has not generated a palette yet, safe Catppuccin-like fallbacks
+-- are used instead of hard-coded theme values.
 
--- Converted from config/hypr/UserConfigs/UserDecorations.conf.
--- NOTE: wallust-hyprland.conf is hyprlang-sourced in the original config.
--- Lua parity for importing that file is still evolving; using static color fallbacks here.
+local config_home = os.getenv("XDG_CONFIG_HOME") or ((os.getenv("HOME") or "") .. "/.config")
+local theme_path = config_home .. "/hypr/lua/theme_colors.lua"
+local theme = {}
+local theme_ok, loaded_theme = pcall(dofile, theme_path)
+if theme_ok and type(loaded_theme) == "table" then
+  theme = loaded_theme
+end
+
+local function color(name, fallback)
+  local value = theme[name]
+  if type(value) == "string" and value:match("^rgba?%(") then
+    return value
+  end
+  return fallback
+end
+
+local active_border = color("color12", "rgba(8db4ffff)")
+local inactive_border = color("color10", "rgba(5f6578ff)")
+local group_border = color("color15", "rgba(ffffffff)")
+local groupbar_active = color("color0", "rgba(0f111aff)")
 
 hl.config({
   general = {
@@ -15,8 +37,8 @@ hl.config({
     gaps_in = 4,
     gaps_out = 6,
     col = {
-      active_border = "rgba(8db4ffff)",
-      inactive_border = "rgba(5f6578ff)",
+      active_border = active_border,
+      inactive_border = inactive_border,
     },
   },
 })
@@ -34,8 +56,8 @@ hl.config({
       enabled = true,
       range = 3,
       render_power = 1,
-      color = "rgba(8db4ffff)",
-      color_inactive = "rgba(5f6578ff)",
+      color = active_border,
+      color_inactive = inactive_border,
     },
     blur = {
       enabled = true,
@@ -53,11 +75,11 @@ hl.config({
 hl.config({
   group = {
     col = {
-      border_active = "rgba(ffffffff)",
+      border_active = group_border,
     },
     groupbar = {
       col = {
-        active = "rgba(0f111aff)",
+        active = groupbar_active,
       },
     },
   },

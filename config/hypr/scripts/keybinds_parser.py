@@ -266,7 +266,7 @@ def _find_lua_block(text, start_idx, open_char="{", close_char="}"):
 
 def _extract_lua_bind_calls(text):
     binds = []
-    calls = _find_lua_calls(text, ["bind", "bindm", "hl.bind"])
+    calls = _find_lua_calls(text, ["bind", "bind_exec", "bind_dispatch", "bindm", "hl.bind"])
     for fn, args_text in calls:
         args = _split_lua_args(args_text)
         if len(args) < 2:
@@ -279,6 +279,10 @@ def _extract_lua_bind_calls(text):
         desc_match = re.search(r'description\s*=\s*(\"(?:\\.|[^\"])*\"|\'(?:\\.|[^\'])*\')', args_text, re.DOTALL)
         if desc_match:
             description = _parse_lua_string(desc_match.group(1))
+        elif fn == "bind_exec" and len(args) >= 4:
+            description = _parse_lua_string(args[3])
+        elif fn == "bind_dispatch" and len(args) >= 5:
+            description = _parse_lua_string(args[4])
         elif fn == "bindm" and len(args) >= 4:
             description = _parse_lua_string(args[3])
         binds.append({

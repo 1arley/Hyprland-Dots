@@ -1,64 +1,14 @@
 -- ==================================================
---  KoolDots (2026)
---  Project URL: https://github.com/LinuxBeginnings
---  License: GNU GPLv3
---  SPDX-License-Identifier: GPL-3.0-or-later
+--  Theme-aware decorations
 -- ==================================================
--- User decorations overrides template.
--- Keep this repo copy as comments only; put active custom values in:
---   ~/.config/hypr/UserConfigs/user_decorations.lua
---
--- Uncomment and edit examples below if you want defaults in the repo template.
+-- The managed block is kept separate so hypr-omarchy-tool can update it
+-- without removing the user's other decoration overrides.
 
--- Example general overrides:
-hl.config({
-  general = {
-    border_size = 1,
-    gaps_in = 4,
-    gaps_out = 6,
-  },
-})
-
--- Example decoration overrides:
-hl.config({
-  decoration = {
-    rounding = 10,
-    active_opacity = 1.0,
-    inactive_opacity = 0.95,
-    fullscreen_opacity = 1.0,
-    dim_inactive = true,
-    dim_strength = 0.1,
-    dim_special = 0.8,
-    shadow = {
-      enabled = true,
-      range = 2,
-      render_power = 1,
-      color = "rgba(8db4ffff)",
-      color_inactive = "rgba(5f6578ff)",
-    },
-    blur = {
-      enabled = true,
-      size = 6,
-      passes = 3,
-      new_optimizations = true,
-      xray = false,
-      ignore_opacity = true,
-      special = true,
-      popups = true,
-    },
-  },
-})
-
--- Example group styling:
-hl.config({
-  group = {
-    col = {
-      border_active = "rgba(ffffffff)",
-    },
-    groupbar = {
-      col = {
-        active = "rgba(0f111aff)",
-      },
-    },
-  },
-})
+-- BEGIN hypr-omarchy-tool theme
+local config_home = os.getenv("XDG_CONFIG_HOME") or ((os.getenv("HOME") or "") .. "/.config")
+local decorations = config_home .. "/hypr/lua/decorations.lua"
+local ok, err = pcall(dofile, decorations)
+if not ok then
+  print("[ERROR] hypr-omarchy-tool: unable to load decorations: " .. tostring(err))
+end
+-- END hypr-omarchy-tool theme

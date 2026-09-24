@@ -210,6 +210,14 @@ local function dispatch(name, args)
     return raw_dispatch_cmd("movetoworkspacesilent " .. args)
   end
   if name == "resizeactive" then
+    local x, y = args:match("^([%-]?%d+%.?%d*)%s+([%-]?%d+%.?%d*)$")
+    if x and y and window_api.resize then
+      local delta_x = tonumber(x)
+      local delta_y = tonumber(y)
+      return function()
+        hl.dispatch(window_api.resize({ x = delta_x, y = delta_y, relative = true }))
+      end
+    end
     return raw_dispatch_cmd("resizeactive " .. args)
   end
   if name == "movecurrentworkspacetomonitor" then
